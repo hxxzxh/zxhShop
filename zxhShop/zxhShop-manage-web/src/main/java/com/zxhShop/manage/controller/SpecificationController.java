@@ -9,6 +9,7 @@ import com.zxhShop.vo.Specification;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RequestMapping("/specification")
 @RestController
@@ -23,8 +24,8 @@ public class SpecificationController {
     }
 
     @GetMapping("/findPage")
-    public PageResult findPage(@RequestParam(value = "page", defaultValue = "1")Integer page,
-                               @RequestParam(value = "rows", defaultValue = "10")Integer rows) {
+    public PageResult findPage(@RequestParam(value = "page", defaultValue = "1") Integer page,
+                               @RequestParam(value = "rows", defaultValue = "10") Integer rows) {
         return specificationService.findPage(page, rows);
     }
 
@@ -111,15 +112,22 @@ public class SpecificationController {
 
     /**
      * 分页查询列表
+     *
      * @param specification 查询条件
-     * @param page 页号
-     * @param rows 每页大小
+     * @param page          页号
+     * @param rows          每页大小
      * @return
      */
     @PostMapping("/search")
-    public PageResult search(@RequestBody  TbSpecification specification, @RequestParam(value = "page", defaultValue = "1")Integer page,
-                               @RequestParam(value = "rows", defaultValue = "10")Integer rows) {
+    public PageResult search(@RequestBody TbSpecification specification, @RequestParam(value = "page", defaultValue = "1") Integer page,
+                             @RequestParam(value = "rows", defaultValue = "10") Integer rows) {
         return specificationService.search(page, rows, specification);
     }
+
+    @GetMapping("/selectOptionList")
+    public List<Map<String, Object>> selectOptionList(){
+        return specificationService.selectOptionList();
+    }
+
 
 }

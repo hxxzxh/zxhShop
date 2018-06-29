@@ -29,7 +29,22 @@ app.controller("baseController",function ($scope) {
         }
     };
 
+    //将一个json集合字符串中的每一个对象对应的某个属性的值拼接后返回
+    $scope.jsonToString = function (jsonListStr, key) {
+        var str = "";
+        //将json集合字符串转为Json对象
+        var jsonArray = JSON.parse(jsonListStr);
+        for (var i = 0; i < jsonArray.length; i++) {
+            var obj = jsonArray[i];
+            if(str.length > 0){
+                str += "," + obj[key];
+            } else {
+                str = obj[key];
+            }
+        }
 
+        return str;
+    };
 
 
 })
