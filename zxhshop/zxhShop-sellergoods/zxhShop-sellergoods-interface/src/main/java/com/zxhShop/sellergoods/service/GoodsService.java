@@ -9,5 +9,15 @@ public interface GoodsService extends BaseService<TbGoods> {
 
     PageResult search(Integer page, Integer rows, TbGoods goods);
 
-    void add(Goods goods);
+    void addGoods(Goods goods);
+
+    Goods findGoodsById(Long id);
+
+    void updateGoods(Goods goods);
+
+    void updateStatus(Long[] ids, String status);
+
+    void deleteGoodsByIds(Long[] ids);
+
+    void updateMarketable(Long[] ids, String isMarketable);
 }
