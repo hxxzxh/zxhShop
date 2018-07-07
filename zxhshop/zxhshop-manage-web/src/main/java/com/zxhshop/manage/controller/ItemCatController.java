@@ -81,6 +81,10 @@ public class ItemCatController {
 
     @GetMapping("/findByParentId")
     public List<TbItemCat> findByParentId(Long parentId) {
+
+        //所有的操作都将调用该方法，所以在此方法进行商品分类缓存更新
+        itemCatService.updateItemCatToRedis();
+
         TbItemCat itemCat = new TbItemCat();
         itemCat.setParentId(parentId);
         return itemCatService.findByWhere(itemCat);

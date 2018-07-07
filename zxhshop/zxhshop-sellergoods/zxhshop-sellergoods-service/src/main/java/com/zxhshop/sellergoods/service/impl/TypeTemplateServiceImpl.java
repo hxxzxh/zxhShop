@@ -12,9 +12,11 @@ import com.zxhshop.sellergoods.service.TypeTemplateService;
 import com.zxhshop.service.impl.BaseServiceImpl;
 import com.zxhshop.vo.PageResult;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.StringUtils;
 import tk.mybatis.mapper.entity.Example;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -26,6 +28,9 @@ public class TypeTemplateServiceImpl extends BaseServiceImpl<TbTypeTemplate> imp
 
     @Autowired
     private SpecificationOptionMapper specificationOptionMapper;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @Override
     public PageResult search(Integer page, Integer rows, TbTypeTemplate typeTemplate) {
@@ -59,6 +64,26 @@ public class TypeTemplateServiceImpl extends BaseServiceImpl<TbTypeTemplate> imp
 
         }
         return specList;
+    }
+
+    @Override
+    public void updateTypeTemplateToRedis() {
+        try {
+            List<TbTypeTemplate> tbTypeTemplateList = findAll();
+            for (TbTypeTemplate typeTemplate : tbTypeTemplateList) {
+                List<Map> brandList = JSONArray.parseArray(typeTemplate.getBrandIds(), Map.class);
+                redisTemplate.boundHashOps("brandList").put(typeTemplate.getId(), brandList);
+
+                List<Map> specList = findSpecList(typeTemplate.getId());
+                redisTemplate.boundHashOps("specList").put(typeTemplate.getId(), specList);
+            }
+
+            System.out.println("更新分类模板（品牌，规格列表）缓存成功。");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
     }
 
 }

@@ -17,6 +17,9 @@
         <module>zxhshop-shop-web</module>
         <module>zxhshop-content</module>
         <module>zxhshop-portal-web</module>
+        <module>zxhshop-solr-import</module>
+        <module>zxhshop-search</module>
+        <module>zxhshop-search-web</module>
     </modules>
 
 

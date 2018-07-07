@@ -75,6 +75,10 @@ public class TypeTemplateController {
     @PostMapping("/search")
     public PageResult search(@RequestBody  TbTypeTemplate typeTemplate, @RequestParam(value = "page", defaultValue = "1")Integer page,
                                @RequestParam(value = "rows", defaultValue = "10")Integer rows) {
+
+        //更新分类模板（品牌，规格）缓存数据
+        typeTemplateService.updateTypeTemplateToRedis();
+
         return typeTemplateService.search(page, rows, typeTemplate);
     }
 
