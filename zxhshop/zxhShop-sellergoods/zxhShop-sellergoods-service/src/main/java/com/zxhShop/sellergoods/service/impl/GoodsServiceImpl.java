@@ -160,6 +160,16 @@ public class GoodsServiceImpl extends BaseServiceImpl<TbGoods> implements GoodsS
 
         //批量更新商品的上下架状态
         goodsMapper.updateByExampleSelective(goods, example);
+
+        //TODO 批量更新SKU商品下架状态 ItemServiceImpl
+    }
+
+    @Override
+    public List<TbItem> findItemListByGoodsIdsAndStatus(Long[] ids, String status) {
+        Example example = new Example(TbItem.class);
+        example.createCriteria().andEqualTo("status", status).andIn("goodsId", Arrays.asList(ids));
+
+        return itemMapper.selectByExample(example);
     }
 
     @Override
@@ -172,6 +182,8 @@ public class GoodsServiceImpl extends BaseServiceImpl<TbGoods> implements GoodsS
 
         //批量更新商品的删除状态
         goodsMapper.updateByExampleSelective(goods, example);
+
+        //TODO 批量更新SKU商品删除状态 ItemServiceImpl
     }
 
 

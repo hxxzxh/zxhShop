@@ -2,6 +2,8 @@ package com.zxhshop.manage.controller;
 
 import com.alibaba.dubbo.config.annotation.Reference;
 import com.zxhshop.pojo.TbGoods;
+import com.zxhshop.pojo.TbItem;
+import com.zxhshop.search.service.ItemSearchService;
 import com.zxhshop.sellergoods.service.GoodsService;
 import com.zxhshop.vo.Goods;
 import com.zxhshop.vo.PageResult;
@@ -9,6 +11,7 @@ import com.zxhshop.vo.Result;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 
 @RequestMapping("/goods")
@@ -17,6 +20,9 @@ public class GoodsController {
 
     @Reference
     private GoodsService goodsService;
+
+    @Reference
+    private ItemSearchService itemSearchService;
 
     @RequestMapping("/findAll")
     public List<TbGoods> findAll() {
@@ -99,6 +105,10 @@ public class GoodsController {
     public Result delete(Long[] ids) {
         try {
             goodsService.deleteGoodsByIds(ids);
+
+            //删除solr中对应商品索引数据
+            itemSearchService.deleteItemByGoodsIdList(Arrays.asList(ids));
+
             return Result.ok("删除成功");
         } catch (Exception e) {
             e.printStackTrace();
@@ -128,6 +138,12 @@ public class GoodsController {
     public Result updateStatus(Long[] ids, String status) {
         try {
             goodsService.updateStatus(ids, status);
+            if ("2".equals(status)) {
+                //如果审核通过则需要更新solr索引库数据
+                //查询到需要更新的商品列表
+                List<TbItem> itemList = goodsService.findItemListByGoodsIdsAndStatus(ids, "1");
+                itemSearchService.importItemList(itemList);
+            }
             return Result.ok("申请成功");
         } catch (Exception e) {
             e.printStackTrace();

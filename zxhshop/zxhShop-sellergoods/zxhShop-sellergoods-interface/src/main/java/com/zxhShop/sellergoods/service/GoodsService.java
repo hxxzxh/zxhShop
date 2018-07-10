@@ -1,9 +1,12 @@
 package com.zxhshop.sellergoods.service;
 
 import com.zxhshop.pojo.TbGoods;
+import com.zxhshop.pojo.TbItem;
 import com.zxhshop.service.BaseService;
 import com.zxhshop.vo.Goods;
 import com.zxhshop.vo.PageResult;
+
+import java.util.List;
 
 public interface GoodsService extends BaseService<TbGoods> {
 
@@ -20,4 +23,12 @@ public interface GoodsService extends BaseService<TbGoods> {
     void deleteGoodsByIds(Long[] ids);
 
     void updateMarketable(Long[] ids, String isMarketable);
+
+    /**
+     * 根据商品SPU id集合和状态查询这些商品对应的SKU商品列表
+     * @param ids 商品SPU id集合
+     * @param status SKU商品状态
+     * @return SKU商品列表
+     */
+    List<TbItem> findItemListByGoodsIdsAndStatus(Long[] ids, String status);
 }

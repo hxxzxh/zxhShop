@@ -5,6 +5,7 @@ import com.zxhshop.pojo.TbItem;
 import com.zxhshop.search.service.ItemSearchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.solr.core.SolrTemplate;
 import org.springframework.data.solr.core.query.*;
@@ -54,6 +55,11 @@ public class ItemSearchServiceImpl implements ItemSearchService {
     public Map<String, Object> search(Map<String, Object> searchMap) {
         Map<String, Object> resultMap = new HashMap<>();
 
+        //处理搜索关键字去除空格
+        if (!StringUtils.isEmpty(searchMap.get("keywords"))) {
+            searchMap.put("keywords", searchMap.get("keywords").toString().replaceAll(" ", ""));
+        }
+
         //1.搜索商品列表
         resultMap.putAll(searchItemList(searchMap));
 
@@ -70,6 +76,20 @@ public class ItemSearchServiceImpl implements ItemSearchService {
         }
 
         return resultMap;
+    }
+
+    @Override
+    public void importItemList(List<TbItem> itemList) {
+        solrTemplate.saveBeans(itemList);
+        solrTemplate.commit();
+    }
+
+    @Override
+    public void deleteItemByGoodsIdList(List<Long> goodsIdList) {
+        Criteria criteria = new Criteria("item_goodsid").in(goodsIdList);
+        SimpleQuery query = new SimpleQuery(criteria);
+        solrTemplate.delete(query);
+        solrTemplate.commit();
     }
 
     /**
@@ -102,16 +122,48 @@ public class ItemSearchServiceImpl implements ItemSearchService {
             query.addFilterQuery(brandFilterQuery);
         }
 
-        //按照规格gl
+        //按照规格过滤
         if (searchMap.get("spec") != null) {
             Map<String, Object> specMap = (Map<String, Object>) searchMap.get("spec");
             Set<Map.Entry<String, Object>> entrySet = specMap.entrySet();
             for (Map.Entry<String, Object> entry : entrySet) {
-                Criteria specCriteria = new Criteria("item_spec" + entry.getKey()).is(entry.getValue());
+                Criteria specCriteria = new Criteria("item_spec_" + entry.getKey()).is(entry.getValue());
                 SimpleFilterQuery specFilterQuery = new SimpleFilterQuery(specCriteria);
                 query.addFilterQuery(specFilterQuery);
             }
         }
+
+        //按照价格过滤
+        if (!StringUtils.isEmpty(searchMap.get("price"))) {
+            //获取起始价格、结束价格
+            if (searchMap.get("price").equals("3000元以上")){
+                searchMap.put("price", "3000-*");
+            }
+            String[] prices = searchMap.get("price").toString().split("-");
+
+            Criteria startPriceCriteria = new Criteria("item_price").greaterThanEqual(prices[0]);
+            SimpleFilterQuery startPriceFilterQuery = new SimpleFilterQuery(startPriceCriteria);
+            query.addFilterQuery(startPriceFilterQuery);
+
+            if (!prices[1].equals("*")) {
+                Criteria endPriceCriteria = new Criteria("item_price").lessThanEqual(prices[1]);
+                SimpleFilterQuery endPriceFilterQuery = new SimpleFilterQuery(endPriceCriteria);
+                query.addFilterQuery(endPriceFilterQuery);
+            }
+        }
+
+
+        //设置分页信息
+        Integer pageNo = 1;
+        Integer pageSize = 40;
+        if (searchMap.get("pageNo") != null) {
+            pageNo = Integer.parseInt(searchMap.get("pageNo").toString());
+        }
+        if (searchMap.get("pageSize") != null) {
+            pageSize = Integer.parseInt(searchMap.get("pageSize").toString());
+        }
+        query.setOffset((pageNo - 1) * pageSize);//起始索引号
+        query.setRows(pageSize);//页大小
 
 
         //设置高亮
@@ -120,6 +172,13 @@ public class ItemSearchServiceImpl implements ItemSearchService {
         highlightOptions.setSimplePrefix("<em style='color:red'>");//高亮起始标签
         highlightOptions.setSimplePostfix("</em>");//高亮结束标签
         query.setHighlightOptions(highlightOptions);
+
+        //设置排序
+        if (!StringUtils.isEmpty(searchMap.get("sortField")) && !StringUtils.isEmpty(searchMap.get("sort"))) {
+            String sortOrder = searchMap.get("sort").toString();
+            Sort sort = new Sort(sortOrder.equals("DESC") ? Sort.Direction.DESC : Sort.Direction.ASC, "item_" + searchMap.get("sortField").toString());
+            query.addSort(sort);
+        }
 
         //查询
         HighlightPage<TbItem> itemHighlightPage = solrTemplate.queryForHighlightPage(query, TbItem.class);
@@ -138,7 +197,8 @@ public class ItemSearchServiceImpl implements ItemSearchService {
 
         //设置返回列表
         map.put("rows", itemHighlightPage.getContent());
-
+        map.put("totalPages", itemHighlightPage.getTotalPages());
+        map.put("total", itemHighlightPage.getTotalElements());
         return map;
     }
 
