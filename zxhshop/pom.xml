@@ -20,6 +20,7 @@
         <module>zxhshop-solr-import</module>
         <module>zxhshop-search</module>
         <module>zxhshop-search-web</module>
+        <module>zxhshop-item-web</module>
     </modules>
 
 

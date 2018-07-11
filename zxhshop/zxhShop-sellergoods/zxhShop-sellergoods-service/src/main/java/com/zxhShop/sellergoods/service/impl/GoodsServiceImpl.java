@@ -173,6 +173,26 @@ public class GoodsServiceImpl extends BaseServiceImpl<TbGoods> implements GoodsS
     }
 
     @Override
+    public Goods findGoodsByIdAndStatus(Long goodsId, String itemStatus) {
+        Goods goods = new Goods();
+
+        TbGoods tbGoods = goodsMapper.selectByPrimaryKey(goodsId);
+        goods.setGoods(tbGoods);
+
+        TbGoodsDesc tbGoodsDesc = goodsDescMapper.selectByPrimaryKey(goodsId);
+        goods.setGoodsDesc(tbGoodsDesc);
+
+        Example example = new Example(TbItem.class);
+        example.createCriteria().andEqualTo("status", itemStatus).andEqualTo("goodsId", goodsId);
+        example.orderBy("isDefault").desc();
+
+        List<TbItem> itemList = itemMapper.selectByExample(example);
+        goods.setItemList(itemList);
+
+        return goods;
+    }
+
+    @Override
     public void deleteGoodsByIds(Long[] ids) {
         TbGoods goods = new TbGoods();
         goods.setIsDelete("1");
