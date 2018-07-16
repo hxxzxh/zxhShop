@@ -1,17 +1,22 @@
 package com.zxhshop.manage.controller;
 
 import com.alibaba.dubbo.config.annotation.Reference;
+import com.alibaba.fastjson.JSON;
 import com.zxhshop.pojo.TbGoods;
 import com.zxhshop.pojo.TbItem;
-import com.zxhshop.search.service.ItemSearchService;
 import com.zxhshop.sellergoods.service.GoodsService;
 import com.zxhshop.vo.Goods;
 import com.zxhshop.vo.PageResult;
 import com.zxhshop.vo.Result;
+import org.apache.activemq.command.ActiveMQQueue;
+import org.apache.activemq.command.ActiveMQTopic;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.core.MessageCreator;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
+import javax.jms.*;
 import java.util.List;
 
 @RequestMapping("/goods")
@@ -21,8 +26,20 @@ public class GoodsController {
     @Reference
     private GoodsService goodsService;
 
-    @Reference
-    private ItemSearchService itemSearchService;
+    @Autowired
+    private JmsTemplate jmsTemplate;
+
+    @Autowired
+    private ActiveMQQueue itemSolrQueue;
+
+    @Autowired
+    private ActiveMQQueue itemSolrDeleteQueue;
+
+    @Autowired
+    private ActiveMQTopic itemTopic;
+
+    @Autowired
+    private ActiveMQTopic itemDeleteTopic;
 
     @RequestMapping("/findAll")
     public List<TbGoods> findAll() {
@@ -107,13 +124,34 @@ public class GoodsController {
             goodsService.deleteGoodsByIds(ids);
 
             //删除solr中对应商品索引数据
-            itemSearchService.deleteItemByGoodsIdList(Arrays.asList(ids));
+            sendMQMsg(itemSolrDeleteQueue, ids);
+
+            //发送商品删除的订阅消息
+            sendMQMsg(itemDeleteTopic,ids);
 
             return Result.ok("删除成功");
         } catch (Exception e) {
             e.printStackTrace();
         }
         return Result.fail("删除失败");
+    }
+
+    /**
+     * 发送消息到Active
+     * @param destination 发送模式
+     * @param ids 商品id集合
+     */
+    private void sendMQMsg(Destination destination, Long[] ids) {
+        try {
+            jmsTemplate.send(destination, new MessageCreator() {
+                @Override
+                public Message createMessage(Session session) throws JMSException {
+                    return session.createObjectMessage(ids);
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -142,7 +180,17 @@ public class GoodsController {
                 //如果审核通过则需要更新solr索引库数据
                 //查询到需要更新的商品列表
                 List<TbItem> itemList = goodsService.findItemListByGoodsIdsAndStatus(ids, "1");
-                itemSearchService.importItemList(itemList);
+                jmsTemplate.send(itemSolrQueue, new MessageCreator() {
+                    @Override
+                    public Message createMessage(Session session) throws JMSException {
+                        TextMessage textMessage = session.createTextMessage();
+                        textMessage.setText(JSON.toJSONString(itemList));
+                        return textMessage;
+                    }
+                });
+
+                //发送商品通过审核的订阅消息
+                sendMQMsg(itemTopic, ids);
             }
             return Result.ok("申请成功");
         } catch (Exception e) {

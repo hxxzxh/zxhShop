@@ -21,6 +21,8 @@
         <module>zxhshop-search</module>
         <module>zxhshop-search-web</module>
         <module>zxhshop-item-web</module>
+        <module>zxhshop-user</module>
+        <module>zxhshop-user-web</module>
     </modules>
 
 

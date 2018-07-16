@@ -97,12 +97,12 @@ public class GoodsController {
 
     @GetMapping("/delete")
     public Result delete(Long[] ids) {
-        try {
+        /*try {
             goodsService.deleteByIds(ids);
             return Result.ok("删除成功");
         } catch (Exception e) {
             e.printStackTrace();
-        }
+        }*/
         return Result.fail("删除失败");
     }
 
