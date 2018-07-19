@@ -9,6 +9,7 @@ import com.zxhshop.vo.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -77,10 +78,23 @@ public class CartController {
         return map;
     }
 
-
+    /**
+     * 实现登录，未登录下将商品加入购物车列表
+     * CrossOrigin 表示支持跨域请求资源
+     * origins 表示允许的域名；allowCredentials表示允许携带并接收cookie（可以省略）
+     * @param itemId 商品id
+     * @param num 购买数量
+     * @return
+     */
     @GetMapping("/addItemToCartList")
+    @CrossOrigin(origins = "http://item.zxhshop.com",allowCredentials = "true")
     public Result addItemToCartList(Long itemId, Integer num) {
         try {
+           /* //设置允许跨域请求
+            response.setHeader("Access-Control-Allow-Origin", "http://item.zxhshop.com");
+            //允许携带并接收cookie
+            response.setHeader("Access-Control-Allow-Credentials","true");*/
+
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
             //获取购物车列表
             List<Cart> cartList = findCartList();

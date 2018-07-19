@@ -25,6 +25,7 @@
         <module>zxhshop-user-web</module>
         <module>zxhshop-cart</module>
         <module>zxhshop-cart-web</module>
+        <module>zxhshop-order</module>
     </modules>
 
 
