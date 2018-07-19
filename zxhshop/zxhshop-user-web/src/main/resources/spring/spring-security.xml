@@ -21,6 +21,8 @@
     <!-- entry-point-ref 入口点引用  -->
     <http use-expressions="false" entry-point-ref="casProcessingFilterEntryPoint">
         <intercept-url pattern="/**" access="ROLE_USER"/>
+       <!-- &lt;!&ndash;禁用session-fixation功能解决单点登出&ndash;&gt;
+        <session-management session-fixation-protection="none"/>-->
         <csrf disabled="true"/>
         <!-- custom-filter 为过滤器， position  表示将过滤器放在指定的位置上， before
         表示放在指定位置之前 ， after 表示放在指定的位置之后 -->

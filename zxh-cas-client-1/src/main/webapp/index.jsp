@@ -12,5 +12,6 @@
 </head>
 <body>
 <%=request.getRemoteUser()%>;欢迎来到一品优购
+---<a href="http://cas.zxhshop.com/logout?service=http://baidu.com">退出</a>
 </body>
 </html>

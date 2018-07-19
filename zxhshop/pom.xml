@@ -23,6 +23,8 @@
         <module>zxhshop-item-web</module>
         <module>zxhshop-user</module>
         <module>zxhshop-user-web</module>
+        <module>zxhshop-cart</module>
+        <module>zxhshop-cart-web</module>
     </modules>
 
 
