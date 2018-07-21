@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import tk.mybatis.mapper.entity.Example;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 @Transactional
@@ -121,6 +122,34 @@ public class OrderServiceImpl extends BaseServiceImpl<TbOrder> implements OrderS
             redisTemplate.boundHashOps(REDIS_CART_LIST).delete(order.getUserId());
         }
         return outTradeNo;
+    }
+
+    @Override
+    public TbPayLog findPayLogByOutTradeNo(String outTradeNo) {
+       return payLogMapper.selectByPrimaryKey(outTradeNo);
+    }
+
+    @Override
+    public void updateOrderStatus(String outTradeNo, String transactionId) {
+        //更新支付日志支付状态
+        TbPayLog payLog = findPayLogByOutTradeNo(outTradeNo);
+        payLog.setTradeState("1");
+        payLog.setPayTime(new Date());
+        payLog.setTransactionId(transactionId);
+        payLogMapper.updateByPrimaryKeySelective(payLog);
+
+        //2.更新支付日志中对应的每一笔订单的支付状态
+        String[] orderIds = payLog.getOrderList().split(",");
+        TbOrder order = new TbOrder();
+        order.setStatus("2");
+        order.setUpdateTime(new Date());
+        order.setPaymentTime(new Date());
+
+        Example example = new Example(TbOrder.class);
+        example.createCriteria().andIn("orderId", Arrays.asList(orderIds));
+        orderMapper.updateByExampleSelective(order, example);
+
+
     }
 }
 
