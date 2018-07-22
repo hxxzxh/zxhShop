@@ -27,6 +27,8 @@
         <module>zxhshop-cart-web</module>
         <module>zxhshop-order</module>
         <module>zxhshop-pay</module>
+        <module>zxhshop-seckill</module>
+        <module>zxhshop-seckill-web</module>
     </modules>
 
 

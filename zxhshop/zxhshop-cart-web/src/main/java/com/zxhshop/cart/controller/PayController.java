@@ -49,7 +49,7 @@ public class PayController {
                 }
                 if ("SUCCESS".equals(resultMap.get("trade_state"))) {
                     result = Result.ok("支付成功");
-                    //更新订单，日志状态
+                    //更新订单、日志状态
                     orderService.updateOrderStatus(outTradeNo, resultMap.get("transaction_id"));
                     break;
                 }
