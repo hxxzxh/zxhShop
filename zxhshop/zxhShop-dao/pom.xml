@@ -60,4 +60,35 @@
         </dependency>
     </dependencies>
 
+    <properties>
+        <!--变量名称，可以随时定义，只要使用时候对应上就可以-->
+        <abc>dev</abc>
+    </properties>
+
+    <profiles>
+        <profile>
+            <id>dev</id>
+            <properties>
+                <abc>dev</abc>
+            </properties>
+        </profile>
+        <profile>
+            <id>pro</id>
+            <properties>
+                <abc>pro</abc>
+            </properties>
+        </profile>
+    </profiles>
+
+    <build>
+        <filters>
+            <filter>src/main/resources/filters/db_${abc}.properties</filter>
+        </filters>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+    </build>
 </project>

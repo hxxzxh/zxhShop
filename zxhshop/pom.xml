@@ -29,6 +29,7 @@
         <module>zxhshop-pay</module>
         <module>zxhshop-seckill</module>
         <module>zxhshop-seckill-web</module>
+        <module>zxhshop-task-service</module>
     </modules>
 
 
